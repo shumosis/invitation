@@ -1,7 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react"; 
 import Head from "next/head";
+import Image from "next/image";
+import * as htmlToImage from "html-to-image"; // ✅ use this only
+import { Tiro_Devanagari_Marathi, Akaya_Kanadaka } from "next/font/google";
 
-export default function Home() {
+const tiro = Tiro_Devanagari_Marathi({
+  subsets: ["devanagari"],
+  weight: ["400"],
+});
+
+const akaya = Akaya_Kanadaka({
+  subsets: ["devanagari"],
+  weight: ["400"],
+});
+
+export default function TraditionalInvitation() {
   const [timeLeft, setTimeLeft] = useState({
     days: "00",
     hours: "00",
@@ -9,8 +22,14 @@ export default function Home() {
     seconds: "00",
   });
 
+  const [showPopup, setShowPopup] = useState(false);
+  const [guestName, setGuestName] = useState("");
+  const [finalName, setFinalName] = useState("");
+  const [showPersonalInvite, setShowPersonalInvite] = useState(false);
+  const inviteRef = useRef(null);
+
   useEffect(() => {
-    const inaugurationDate = new Date("September 10, 2025 16:00:00").getTime();
+    const inaugurationDate = new Date("March 12, 2026 18:25:00").getTime();
 
     const interval = setInterval(() => {
       const now = new Date().getTime();
@@ -38,346 +57,327 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleRSVP = () => {
-    const name = prompt("Please enter your name:");
-    if (name) {
-      const willAttend = confirm(`Thank you ${name}! Will you be attending our house inauguration?`);
-      if (willAttend) {
-        alert("We're excited to see you at the inauguration!");
-      } else {
-        alert("We'll miss you! Thank you for letting us know.");
-      }
-    }
+  const handleDownload = () => {
+  if (!inviteRef.current) return;
+
+  htmlToImage
+    .toPng(inviteRef.current, {
+      cacheBust: true,
+      backgroundColor: "#ffffff",
+      style: {
+        fontFamily: "'Noto Serif Devanagari', serif", // ✅ fallback font
+      },
+      skipFonts: true, // ✅ prevent trying to embed Google Fonts (causes SecurityError)
+      filter: (node) => {
+        // ✅ ignore <link> or <style> nodes (external CSS causes errors)
+        if (node.tagName === "LINK" || node.tagName === "STYLE") {
+          return false;
+        }
+        return true;
+      },
+    })
+    .then((dataUrl) => {
+      const link = document.createElement("a");
+      link.download = `${guestName || "invitation"}.png`;
+      link.href = dataUrl;
+      link.click();
+    })
+    .catch((err) => {
+      console.error("❌ Error generating image:", err);
+    });
+};
+
+  const handlePopupSubmit = () => {
+    if (guestName.trim() === "") return;
+    setFinalName(guestName);
+    setShowPopup(false);
+    setShowPersonalInvite(true);
   };
+
 
   return (
     <>
       <Head>
-        <title>House Inauguration Invitation</title>
+        <title>गृह प्रवेश निमंत्रण</title>
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Noto+Serif+Devanagari:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+        <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;700&family=Modak&family=Baloo+Bhai+2:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
       </Head>
 
-      <div className="container">
-        <div className="invitation-card">
-          <div className="header">
-            <h1>HOUSE INAUGURATION</h1>
-            <p>You are Cordially Invited to Celebrate With Us</p>
+      {/* ---------------- MAIN INVITATION (WITH COUNTDOWN) ---------------- */}
+      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4 py-8 relative overflow-hidden bg-white">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/bgFix.jpg"
+            alt="Ganesha Background"
+            className="w-full h-full object-cover opacity-10"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-amber-50/70 via-white/90 to-white"></div>
+        </div>
+
+        <div className="relative z-10 w-full max-w-2xl rounded-3xl shadow-2xl p-6 md:p-8 overflow-hidden bg-white">
+          <div className="absolute inset-0 z-0">
+            <img
+              src="/bg25.jpg"
+              alt="Background"
+              className="w-full h-full object-cover opacity-100"
+            />
           </div>
 
-          <div
-            className="house-image"
-            onClick={() =>
-              alert(
-                "To add your house image, replace the placeholder with an <img> tag."
-              )
-            }
-          >
-            <div className="upload-text">
-              <i className="fas fa-home fa-3x"></i>
-              <p>Your house image will appear here</p>
-              <p>Click on  below</p>
+          <div className="relative z-10">
+            {/* Ganesh Image + Heading */}
+            <div className="flex flex-col items-center">
+              <Image
+  src="/ganesha4.jpg"
+  alt="Shree Ganesh"
+  width={150}
+  height={150}
+  className="mx-auto mb-4 rounded-full shadow-[0_0_15px_rgba(255,215,0,0.8)]"
+/>
+             <h1 className={` text-4xl md:text-5xl font-extrabold mt-2 text-yellow-700 drop-shadow-lg font-devanagari `}>
+  गृह प्रवेश निमंत्रण
+</h1>
             </div>
-          </div>
 
-          <div className="details">
-            <h2>Celebration Details</h2>
+            <p className="text-xl md:text-2xl mt-2 text-yellow-600 drop-shadow-md font-devanagari">
+              गुरुवार, १२ मार्च २०२५, संध्याकाळी ०६:२५
+            </p>
 
-            <div className="info-grid">
-              <div className="info-item">
-                <i className="fas fa-calendar-alt"></i>
-                <div>
-                  <h3>September 10, 2025</h3>
-                  <p>Wednesday</p>
-                </div>
-              </div>
-
-              <div className="info-item">
-                <i className="fas fa-clock"></i>
-                <div>
-                  <h3>4:00 PM onwards</h3>
-                  <p>Evening</p>
-                </div>
-              </div>
-
-              <div className="info-item">
-                <i className="fas fa-map-marker-alt"></i>
-                <div>
-                  <h3>Our New Home</h3>
-                  <p>Address will be shared after RSVP</p>
-                </div>
-              </div>
-
-              <div className="info-item">
-                <i className="fas fa-gift"></i>
-                <div>
-                  <h3>Your Presence</h3>
-                  <p>Is the only gift we need</p>
+            {/* 🏠 House Image with double golden border */}
+            <div className="relative mt-5 max-w-md mx-auto p-[6px] rounded-2xl bg-gradient-to-r from-pink-900 via-pink-700 to-pink-500 shadow-2xl">
+              <div className="rounded-2xl bg-gradient-to-r from-pink-900 via-pink-700 to-pink-500 p-[4px]">
+                <div className="relative h-60 md:h-72 w-full rounded-xl overflow-hidden">
+                  <Image
+                    src="/house2.jpg"
+                    alt="Our New Home"
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-xl"
+                    priority
+                  />
                 </div>
               </div>
             </div>
 
-            <div className="message">
-              <p>
-                After much anticipation and hard work, we are thrilled to invite
-                you to the inauguration of our new home. Your presence will add
-                joy to our celebration and bless our new beginning.
+            {/* Countdown */}
+            <div className="my-6 text-red-900">
+              <h2 className="text-xl mb-3 drop-shadow">Countdown to Celebration</h2>
+              <div className="flex justify-center space-x-5">
+                {["days", "hours", "minutes", "seconds"].map((unit) => (
+                  <div key={unit} className="text-center">
+                    <div className="text-3xl font-bold drop-shadow-lg">{timeLeft[unit]}</div>
+                    <div className="text-sm capitalize">{unit}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Message */}
+            <div className="mt-6 px-4 leading-relaxed font-serif text-pink-900 text-base md:text-lg drop-shadow-md text-center">
+              <p className="font-devanagari">
+                🪔 स्वप्न एका नव्या वास्तूचे, साकार झाले आपल्या आशीर्वादाने।
+                कार्य नूतन गृहाचे वास्तुशांतीचे, योजिले श्री कुलदेवताच्या कृपेने।
+              </p>
+              <p className="font-devanagari">
+                🌺 तोरण या वास्तूवर चढावे, आपण सर्वांच्या साक्षीने...
+                <br />
+                रंगत या कार्याची वाढावी तुमच्या आनंददायी सहवासाने…
               </p>
             </div>
 
-            <div className="countdown">
-              <h3>Countdown to the Celebration</h3>
-              <div className="countdown-timer">
-                <div className="timer-unit">
-                  <div className="timer-value">{timeLeft.days}</div>
-                  <div className="timer-label">Days</div>
-                </div>
-                <div className="timer-unit">
-                  <div className="timer-value">{timeLeft.hours}</div>
-                  <div className="timer-label">Hours</div>
-                </div>
-                <div className="timer-unit">
-                  <div className="timer-value">{timeLeft.minutes}</div>
-                  <div className="timer-label">Minutes</div>
-                </div>
-                <div className="timer-unit">
-                  <div className="timer-value">{timeLeft.seconds}</div>
-                  <div className="timer-label">Seconds</div>
-                </div>
-              </div>
-            </div>
+            {/* Venue */}
+                  <p className="mt-6 font-bold text-base md:text-lg text-pink-900 drop-shadow-lg font-devanagari">
+  <i className="fas fa-map-marker-alt mr-2"></i>
+  स्थळ : पाटील गल्ली, गणपती मंदिर जवळ, माळभाग, शिरढोण
+</p>
 
-            <div className="rsvp">
-              <button className="rsvp-button" onClick={handleRSVP}>
-                RSVP Now
-              </button>
-              <p style={{ marginTop: "20px" }}>
-                We wouldd love to know if you can make it!
-              </p>
-            </div>
+            {/* Host */}
+            <p className="mt-5 font-bold text-base md:text-lg text-pink-900 drop-shadow-lg text-center font-devanagari">
+              <i className="fas fa-user-circle mr-2"></i>
+             निमंत्रक : सुरवे, सासणे, गारवे
+            </p>
           </div>
         </div>
 
-        <div className="footer">
-          <p>
-            Created with ❤️ for our special guests | For inquiries:
-            your-email@example.com
-          </p>
-        </div>
+        {/* Floating Icons */}
+        <div className="absolute top-4 left-4 text-2xl text-amber-600 animate-pulse"></div>
+        <div className="absolute bottom-4 right-4 text-2xl text-amber-600 animate-pulse">🙏</div>
       </div>
 
+      {/* Download Button */}
+      <div className="text-center mt-6">
+        <button
+          onClick={() => setShowPopup(true)}
+          className="px-6 py-3 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:bg-red-700 transition"
+        >
+          📥 View And Download Your Invitation
+        </button>
+      </div>
+
+      {/* Popup */}
+      {showPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl w-80">
+            <h2 className="text-lg font-bold mb-4">तुमचे नाव भरा ✨</h2>
+            <input
+              type="text"
+              value={guestName}
+              onChange={(e) => setGuestName(e.target.value)}
+              className="w-full border p-2 rounded-lg mb-4"
+              placeholder="तुमचे नाव"
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowPopup(false)}
+                className="px-4 py-2 bg-gray-400 text-white rounded-lg"
+              >
+                रद्द करा
+              </button>
+              <button
+                onClick={handlePopupSubmit}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg"
+              >
+                पुढे जा
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------- PERSONALIZED INVITATION ---------------- */}
+      {showPersonalInvite && (
+        <div className="my-10 flex flex-col items-center">
+          <div
+            ref={inviteRef}
+            className="relative w-full max-w-2xl rounded-3xl shadow-xl p-6 bg-white overflow-hidden"
+          >
+            <div className="absolute inset-0 z-0">
+              <img
+                src="/bg25.jpg"
+                alt="Background"
+                className="w-full h-full object-cover opacity-100"
+              />
+            </div>
+
+          <div className="relative z-10 text-center">
+  {/* Ganesh Image */}
+  
+  
+    {/* <Image
+  src="/ganesha4.jpg"
+  alt="Shree Ganesh"
+  width={150}
+  height={150}
+  className="mx-auto mb-4 rounded-full shadow-[0_0_15px_rgba(255,215,0,0.8)]"
+/> */}
+<img
+  src="/ganesha4.jpg"
+  alt="Shree Ganesh"
+  className="mx-auto mb-4 w-[150px] h-[150px] rounded-full shadow-[0_0_15px_rgba(255,215,0,0.8)]"
+/>
+
+  {/* Heading */}
+  <h1 className="text-4xl md:text-5xl font-extrabold mt-4 text-yellow-700 drop-shadow-lg font-devanagari">
+    गृह प्रवेश निमंत्रण
+  </h1>
+
+  {/* Date */}
+  <p className="text-xl md:text-2xl mt-3 text-yellow-600 drop-shadow-md font-devanagari">
+    गुरुवार, १२ मार्च २०२५, संध्याकाळी ०६:२५
+  </p>
+
+              <p className="text-base md:text-lg mt-2 text-pink-900 drop-shadow-md font-devanagari">
+                आदरणीय {finalName} सप्रेम नमस्कार वि. वि. आपणास कळविण्यात आनंद होत आहे कि, आमच्या नवीन वास्तूची शांती व सत्यनारायण महापूजा आयोजित केली आहे! तरी आपण सहकुटुंब, सहपरिवार व मित्रमंडळी उपस्थित राहून तीर्थप्रसादाचा लाभ घ्यावा ही विनंती... 🌸
+              </p>
+
+              {/* House Image with golden border */}
+              <div className="relative mt-5 max-w-md mx-auto p-[6px] rounded-2xl bg-gradient-to-r from-pink-900 via-pink-700 to-pink-500 shadow-2xl">
+                <div className="rounded-2xl bg-gradient-to-r from-pink-900 via-pink-700 to-pink-500 p-[4px]">
+                  <div className="relative h-60 md:h-72 w-full rounded-xl overflow-hidden">
+                    <Image
+                      src="/house2.jpg"
+                      alt="Our New Home"
+                      layout="fill"
+                      objectFit="cover"
+                      className="rounded-xl"
+                      priority
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Message */}
+              <div className="mt-6 px-4 leading-relaxed font-serif text-pink-900 text-base md:text-lg drop-shadow-md">
+                <p className="font-devanagari">
+                  🪔 स्वप्न एका नव्या वास्तूचे, साकार झाले आपल्या आशीर्वादाने।
+                  कार्य नूतन गृहाचे वास्तुशांतीचे, योजिले श्री कुलदेवताच्या कृपेने।
+                </p>
+                <p className="font-devanagari">
+                  🌺 तोरण या वास्तूवर चढावे, आपण सर्वांच्या साक्षीने...
+                  <br />
+                  रंगत या कार्याची वाढावी तुमच्या आनंददायी सहवासाने…
+                </p>
+              </div>
+
+              {/* Venue */}
+         <p className="mt-6 font-bold text-base md:text-lg text-pink-900 drop-shadow-lg font-devanagari">
+  <i className="fas fa-map-marker-alt mr-2"></i>
+  स्थळ : पाटील गल्ली, गणपती मंदिर जवळ, माळभाग, शिरढोण
+</p>
+
+<p className="mt-5 font-bold text-base md:text-lg text-pink-900 drop-shadow-lg font-devanagari">
+  <i className="fas fa-user-circle mr-2"></i>
+  निमंत्रक : सुरवे, सासणे, गारवे
+</p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleDownload}
+            className="mt-6 px-6 py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition"
+          >
+            📥 Download Personalized Invitation
+          </button>
+        </div>
+      )}
+
+     
       <style jsx>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-          color: #333;
-          line-height: 1.6;
-        }
-
-        .container {
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 20px;
-        }
-
-        .invitation-card {
-          background: white;
-          border-radius: 20px;
-          box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-          margin: 30px auto;
-          transition: transform 0.3s ease;
-        }
-
-        .invitation-card:hover {
-          transform: translateY(-5px);
-        }
-
-        .header {
-          text-align: center;
-          padding: 30px 20px;
-          background: linear-gradient(120deg, #2c3e50, #4ca1af);
-          color: white;
-        }
-
-        .header h1 {
-          font-size: 2.5rem;
-          margin-bottom: 10px;
-          font-weight: 700;
-          letter-spacing: 2px;
-        }
-
-        .header p {
-          font-size: 1.2rem;
-          opacity: 0.9;
-        }
-
-        .house-image {
-          width: 100%;
-          height: 350px;
-          background-color: #eee;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #777;
-          font-size: 1.2rem;
-          position: relative;
-          overflow: hidden;
-          cursor: pointer;
-        }
-
-        .house-image img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .upload-text {
-          position: absolute;
-          text-align: center;
-          z-index: 2;
-        }
-
-        .details {
-          padding: 30px;
-        }
-
-        .details h2 {
-          color: #2c3e50;
-          margin-bottom: 20px;
-          text-align: center;
-          font-size: 1.8rem;
-          position: relative;
-          padding-bottom: 10px;
-        }
-
-        .details h2:after {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 80px;
-          height: 3px;
-          background: linear-gradient(120deg, #2c3e50, #4ca1af);
-        }
-
-        .info-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 20px;
-          margin-bottom: 30px;
-        }
-
-        .info-item {
-          display: flex;
-          align-items: center;
-          background: #f8f9fa;
-          padding: 15px;
-          border-radius: 10px;
-        }
-
-        .info-item i {
-          font-size: 1.5rem;
-          margin-right: 15px;
-          color: #4ca1af;
-        }
-
-        .message {
-          background: #f8f9fa;
-          padding: 25px;
-          border-radius: 10px;
-          margin-bottom: 30px;
-          text-align: center;
-          font-style: italic;
-          line-height: 1.8;
-        }
-
-        .countdown {
-          text-align: center;
-          margin: 30px 0;
-        }
-
-        .countdown h3 {
-          margin-bottom: 20px;
-          color: #2c3e50;
-        }
-
-        .countdown-timer {
-          display: flex;
-          justify-content: center;
-          gap: 15px;
-          flex-wrap: wrap;
-        }
-
-        .timer-unit {
-          background: linear-gradient(120deg, #2c3e50, #4ca1af);
-          color: white;
-          padding: 15px;
-          border-radius: 10px;
-          min-width: 80px;
-        }
-
-        .timer-value {
-          font-size: 2rem;
-          font-weight: bold;
-        }
-
-        .timer-label {
-          font-size: 0.9rem;
-          margin-top: 5px;
-        }
-
-        .rsvp {
-          text-align: center;
-          margin-top: 30px;
-        }
-
-        .rsvp-button {
-          display: inline-block;
-          background: linear-gradient(120deg, #2c3e50, #4ca1af);
-          color: white;
-          padding: 15px 40px;
-          border-radius: 50px;
-          text-decoration: none;
-          font-weight: bold;
-          font-size: 1.2rem;
-          transition: all 0.3s ease;
-          border: none;
-          cursor: pointer;
-          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .rsvp-button:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .footer {
-          text-align: center;
-          margin-top: 40px;
-          color: #777;
-          font-size: 0.9rem;
-        }
-
-        @media (max-width: 600px) {
-          .info-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .header h1 {
-            font-size: 2rem;
-          }
-        }
-      `}</style>
+  .font-devanagari {
+    font-family: "Noto Serif Devanagari", serif;
+  }
+  .font-marathi-stylish {
+    font-family: "Modak", cursive;
+  }
+  .font-marathi-bold {
+    font-family: "Baloo Bhai 2", cursive;
+  }
+    .font-display-rozh a {
+    font-family: "Rozha One", serif;
+  }
+  .font-display-shrikhand {
+    font-family: "Shrikhand", cursive;
+  }
+  .font-script-tillana {
+    font-family: "Tillana", cursive;
+  }
+  .font-literary-tiro {
+    font-family: "Tiro Devanagari Marathi", serif;
+  }
+`}</style>
     </>
   );
 }
